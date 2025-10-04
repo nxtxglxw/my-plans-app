@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ email?: string } | null>(null);
 
   useEffect(() => {
     // 現在のユーザーを取得
