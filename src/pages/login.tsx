@@ -17,7 +17,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message);
     } else {
-      router.push('/dashboard'); // ログイン成功後に予定管理画面へ
+      router.push('/dashboard'); // ログイン成功後にダッシュボードへ
     }
   };
 
@@ -49,3 +49,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

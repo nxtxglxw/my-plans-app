@@ -8,7 +8,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<{ email?: string } | null>(null);
 
   useEffect(() => {
-    // 現在のユーザーを取得
+    // 現在のユーザー情報を取得
     const getUser = async () => {
       const {
         data: { user },

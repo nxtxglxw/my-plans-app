@@ -19,7 +19,7 @@ export default function SignUpPage() {
       setError(error.message);
     } else {
       setMessage('登録が完了しました！ログインしてください。');
-      setTimeout(() => router.push('/login'), 2000); // 2秒後にログイン画面へ
+      setTimeout(() => router.push('/login'), 2000); // 2秒後にログインページへ
     }
   };
 
