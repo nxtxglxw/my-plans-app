@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type Schedule = {
   id: number;
@@ -9,26 +9,23 @@ type Schedule = {
 
 export default function Dashboard() {
   const [schedules, setSchedules] = useState<Schedule[]>([
-    { id: 1, name: "田中 太郎", destination: "外回り（高松市）", return_time: "17:00" },
-    { id: 2, name: "佐藤 花子", destination: "会議（本社）", return_time: "16:00" },
-    { id: 3, name: "鈴木 次郎", destination: "現場（坂出）", return_time: "18:00" },
+    { id: 1, name: "田中", destination: "外回り", return_time: "17:00" },
+    { id: 2, name: "佐藤", destination: "会議", return_time: "16:00" },
+    { id: 3, name: "鈴木", destination: "現場", return_time: "18:00" },
+    { id: 4, name: "山本", destination: "打合せ", return_time: "15:30" },
+    { id: 5, name: "中村", destination: "現地確認（丸亀）", return_time: "17:45" },
   ]);
 
   const [editing, setEditing] = useState<Schedule | null>(null);
   const [formData, setFormData] = useState({ name: "", destination: "", return_time: "" });
 
-  // モーダル開く
   const handleOpen = (s: Schedule) => {
     setEditing(s);
     setFormData({ name: s.name, destination: s.destination, return_time: s.return_time });
   };
 
-  // モーダル閉じる
-  const handleClose = () => {
-    setEditing(null);
-  };
+  const handleClose = () => setEditing(null);
 
-  // 保存
   const handleSave = () => {
     if (!editing) return;
     setSchedules((prev) =>
@@ -41,7 +38,6 @@ export default function Dashboard() {
     <div style={{ padding: "2rem", maxWidth: 800, margin: "auto" }}>
       <h2 style={{ textAlign: "center" }}>行動予定表</h2>
 
-      {/* テーブル */}
       <table
         style={{
           width: "100%",
@@ -75,7 +71,6 @@ export default function Dashboard() {
         </tbody>
       </table>
 
-      {/* モーダル */}
       {editing && (
         <div
           style={{
