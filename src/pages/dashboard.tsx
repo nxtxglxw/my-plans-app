@@ -1,36 +1,83 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabaseClient";
 
 type Schedule = {
-  id: number;
+  id: string;
   name: string;
   destination: string;
   return_time: string;
+  updated_at?: string;
+  created_at?: string;
+  user_id?: string | null;
 };
 
 export default function Dashboard() {
-  const [schedules, setSchedules] = useState<Schedule[]>([
-    { id: 1, name: "田中", destination: "外回り", return_time: "17:00" },
-    { id: 2, name: "佐藤", destination: "会議", return_time: "16:00" },
-    { id: 3, name: "鈴木", destination: "現場", return_time: "18:00" },
-    { id: 4, name: "山本", destination: "打合せ", return_time: "15:30" },
-    { id: 5, name: "中村", destination: "現地確認（丸亀）", return_time: "17:45" },
-  ]);
-
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [editing, setEditing] = useState<Schedule | null>(null);
-  const [formData, setFormData] = useState({ name: "", destination: "", return_time: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    destination: "",
+    return_time: "",
+  });
 
-  const handleOpen = (s: Schedule) => {
-    setEditing(s);
-    setFormData({ name: s.name, destination: s.destination, return_time: s.return_time });
+  // ① Supabaseから全予定を取得
+  const fetchSchedules = async () => {
+    const { data, error } = await supabase
+      .from("schedules")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("fetch error:", error);
+      return;
+    }
+
+    // dataはnullの可能性あるので安全に
+    console.log("Fetched data:", data);
+    setSchedules((data || []) as Schedule[]);
   };
 
-  const handleClose = () => setEditing(null);
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
 
-  const handleSave = () => {
+  // ② 行をクリック → モーダルを開く
+  const handleOpen = (row: Schedule) => {
+    setEditing(row);
+    setFormData({
+      name: row.name || "",
+      destination: row.destination || "",
+      return_time: row.return_time || "",
+    });
+  };
+
+  // モーダル閉じる
+  const handleClose = () => {
+    setEditing(null);
+  };
+
+  // ③ 保存（更新）
+  const handleSave = async () => {
     if (!editing) return;
-    setSchedules((prev) =>
-      prev.map((s) => (s.id === editing.id ? { ...s, ...formData } : s))
-    );
+
+    const { error } = await supabase
+      .from("schedules")
+      .update({
+        name: formData.name,
+        destination: formData.destination,
+        return_time: formData.return_time,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", editing.id);
+
+    if (error) {
+      console.error("update error:", error);
+      alert("更新に失敗しました");
+      return;
+    }
+
+    // 画面を最新化
+    await fetchSchedules();
     setEditing(null);
   };
 
@@ -38,6 +85,7 @@ export default function Dashboard() {
     <div style={{ padding: "2rem", maxWidth: 800, margin: "auto" }}>
       <h2 style={{ textAlign: "center" }}>行動予定表</h2>
 
+      {/* 一覧テーブル */}
       <table
         style={{
           width: "100%",
@@ -53,32 +101,39 @@ export default function Dashboard() {
             <th style={{ border: "1px solid #ccc", padding: "8px" }}>帰社時間</th>
           </tr>
         </thead>
+
         <tbody>
-          {schedules.map((s) => (
-            <tr
-              key={s.id}
-              onClick={() => handleOpen(s)}
-              style={{
-                cursor: "pointer",
-                borderBottom: "1px solid #ddd",
-              }}
-            >
-              <td style={{ padding: "8px" }}>{s.name}</td>
-              <td style={{ padding: "8px" }}>{s.destination}</td>
-              <td style={{ padding: "8px" }}>{s.return_time}</td>
+          {schedules.length === 0 ? (
+            <tr>
+              <td colSpan={3} style={{ textAlign: "center", padding: "1rem" }}>
+                データがありません。
+              </td>
             </tr>
-          ))}
+          ) : (
+            schedules.map((row) => (
+              <tr
+                key={row.id}
+                onClick={() => handleOpen(row)}
+                style={{
+                  cursor: "pointer",
+                  borderBottom: "1px solid #ddd",
+                }}
+              >
+                <td style={{ padding: "8px" }}>{row.name}</td>
+                <td style={{ padding: "8px" }}>{row.destination}</td>
+                <td style={{ padding: "8px" }}>{row.return_time}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 
+      {/* 編集モーダル（自前） */}
       {editing && (
         <div
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
+            inset: 0,
             background: "rgba(0,0,0,0.4)",
             display: "flex",
             alignItems: "center",
@@ -103,7 +158,9 @@ export default function Dashboard() {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               style={{ width: "100%", marginBottom: "10px" }}
             />
 
@@ -111,7 +168,9 @@ export default function Dashboard() {
             <input
               type="text"
               value={formData.destination}
-              onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, destination: e.target.value })
+              }
               style={{ width: "100%", marginBottom: "10px" }}
             />
 
@@ -119,7 +178,9 @@ export default function Dashboard() {
             <input
               type="time"
               value={formData.return_time}
-              onChange={(e) => setFormData({ ...formData, return_time: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, return_time: e.target.value })
+              }
               style={{ width: "100%", marginBottom: "20px" }}
             />
 

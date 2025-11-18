@@ -1,6 +1,7 @@
 import { useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
+import { Avatar, Box, Chip } from '@mui/material';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,6 +24,8 @@ export default function LoginPage() {
 
   return (
     <div style={{ maxWidth: 400, margin: 'auto', paddingTop: 100 }}>
+      <Box></Box>
+      <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
       <h1>ログイン</h1>
       <input
         type="email"
